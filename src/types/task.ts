@@ -4,22 +4,32 @@ export type Priority = 'high' | 'medium' | 'low';
 
 export type CategoryId = 'personal' | 'work' | 'study' | 'shopping' | 'health';
 
-export type Task = {
+export interface Task {
   id: string;
   title: string;
-  notes?: string;
-  categoryId: CategoryId;
+  description?: string;
+  category: CategoryId;
   priority: Priority;
-  /** Local date in YYYY-MM-DD format */
+  /** Local date, YYYY-MM-DD */
   dueDate: string;
-  /** Display time, e.g. "9:30 AM" */
+  /** Optional 24h time, HH:mm */
   dueTime?: string;
-  completed: boolean;
-  /** Local date in YYYY-MM-DD format */
+  /** Reminder preference (UI/state only for now) */
+  reminder: boolean;
+  isCompleted: boolean;
+  /** ISO timestamp */
+  createdAt: string;
+  /** ISO timestamp, set while the task is completed */
   completedAt?: string;
-};
+}
 
-export type Category = {
+/** Fields the user edits in the Add/Edit form. */
+export type TaskInput = Pick<
+  Task,
+  'title' | 'description' | 'category' | 'priority' | 'dueDate' | 'dueTime' | 'reminder'
+>;
+
+export interface Category {
   id: CategoryId;
   name: string;
   icon: LucideIcon;
@@ -29,4 +39,4 @@ export type Category = {
   /** Soft tint used behind the icon (light / dark theme) */
   tint: string;
   darkTint: string;
-};
+}

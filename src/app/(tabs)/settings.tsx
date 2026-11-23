@@ -19,8 +19,10 @@ import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-na
 
 import { AppText } from '@/components/AppText';
 import { CustomHeader } from '@/components/CustomHeader';
+import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { Screen } from '@/components/Screen';
 import { Radius, Spacing } from '@/constants/colors';
+import { useTaskStore } from '@/stores/taskStore';
 import { useAppTheme, type ThemePreference } from '@/theme/ThemeContext';
 import { softShadow } from '@/theme/styles';
 
@@ -97,6 +99,9 @@ export default function SettingsScreen() {
   const { colors, preference, setPreference } = useAppTheme();
   const [notifications, setNotifications] = useState({ reminders: true, daily: true, sound: false });
   const version = Constants.expoConfig?.version ?? '1.0.0';
+  const taskCount = useTaskStore((s) => s.tasks.length);
+  const clearAll = useTaskStore((s) => s.clearAll);
+  const [confirmClear, setConfirmClear] = useState(false);
 
   const toggle = (key: keyof typeof notifications) => (value: boolean) =>
     setNotifications((n) => ({ ...n, [key]: value }));
@@ -189,7 +194,8 @@ export default function SettingsScreen() {
             label="Clear all data"
             danger
             last
-            onPress={comingSoon('Clear all data')}
+            hint={taskCount === 0 ? 'No tasks to clear' : `Remove all ${taskCount} tasks`}
+            onPress={taskCount === 0 ? undefined : () => setConfirmClear(true)}
           />
         </Group>
 
@@ -222,6 +228,18 @@ export default function SettingsScreen() {
           </AppText>
         </View>
       </ScrollView>
+
+      <DeleteConfirmation
+        visible={confirmClear}
+        title="Clear all data?"
+        message={`All ${taskCount} tasks will be permanently removed.`}
+        confirmLabel="Clear all"
+        onCancel={() => setConfirmClear(false)}
+        onConfirm={() => {
+          clearAll();
+          setConfirmClear(false);
+        }}
+      />
     </Screen>
   );
 }

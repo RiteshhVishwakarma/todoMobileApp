@@ -1,4 +1,6 @@
+import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
@@ -7,9 +9,10 @@ import { CustomHeader } from '@/components/CustomHeader';
 import { Screen } from '@/components/Screen';
 import { CATEGORIES } from '@/constants/categories';
 import { Radius, Spacing } from '@/constants/colors';
-import { DUMMY_TASKS } from '@/data/tasks';
+import { useTaskStore } from '@/stores/taskStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import type { Category } from '@/types/task';
+import { categoryStats } from '@/utils/tasks';
 
 function chunk<T>(items: T[], size: number): T[][] {
   const rows: T[][] = [];
@@ -20,10 +23,11 @@ function chunk<T>(items: T[], size: number): T[][] {
 export default function CategoriesScreen() {
   const { colors } = useAppTheme();
 
-  const stats = (c: Category) => {
-    const tasks = DUMMY_TASKS.filter((t) => t.categoryId === c.id);
-    return { total: tasks.length, completed: tasks.filter((t) => t.completed).length };
-  };
+  const tasks = useTaskStore((s) => s.tasks);
+  const statsById = useMemo(() => categoryStats(tasks), [tasks]);
+  const stats = (c: Category) => statsById[c.id] ?? { total: 0, completed: 0 };
+  const openCategory = (c: Category) =>
+    router.navigate({ pathname: '/tasks', params: { category: c.id } });
 
   const onAdd = () => Alert.alert('Add Category', 'Custom categories are coming soon.');
 
@@ -56,7 +60,12 @@ export default function CategoriesScreen() {
                   </AppText>
                 </Pressable>
               ) : (
-                <CategoryCard key={item.id} category={item} {...stats(item)} />
+                <CategoryCard
+                  key={item.id}
+                  category={item}
+                  {...stats(item)}
+                  onPress={() => openCategory(item)}
+                />
               ),
             )}
             {row.length === 1 && <View style={styles.spacer} />}

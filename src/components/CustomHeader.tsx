@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { ChevronLeft } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -6,6 +5,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Radius, Spacing } from '@/constants/colors';
 import { useAppTheme } from '@/theme/ThemeContext';
 import { softShadow } from '@/theme/styles';
+import { goBackOrHome } from '@/utils/navigation';
 
 import { AppText } from './AppText';
 
@@ -26,7 +26,7 @@ export function CustomHeader({ title, subtitle, showBack, right }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Go back"
           hitSlop={8}
-          onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)/index'))}
+          onPress={goBackOrHome}
           style={({ pressed }) => [
             styles.back,
             { backgroundColor: colors.card, borderColor: colors.border },

@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
 import { PartyPopper, Sprout } from 'lucide-react-native';
+import { useMemo } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
 import { AddTaskButton } from '@/components/AddTaskButton';
@@ -9,14 +9,14 @@ import { EmptyState } from '@/components/EmptyState';
 import { Screen } from '@/components/Screen';
 import { TaskCard } from '@/components/TaskCard';
 import { Radius, Spacing } from '@/constants/colors';
-import { DUMMY_TASKS } from '@/data/tasks';
+import { useTaskStore } from '@/stores/taskStore';
 import { useAppTheme } from '@/theme/ThemeContext';
+import { completedTasks } from '@/utils/tasks';
 
 export default function CompletedScreen() {
   const { colors } = useAppTheme();
-  const completed = DUMMY_TASKS.filter((t) => t.completed).sort((a, b) =>
-    (b.completedAt ?? '').localeCompare(a.completedAt ?? ''),
-  );
+  const tasks = useTaskStore((s) => s.tasks);
+  const completed = useMemo(() => completedTasks(tasks), [tasks]);
 
   return (
     <Screen edges={['top', 'bottom']}>
@@ -37,7 +37,7 @@ export default function CompletedScreen() {
               </View>
               <View style={styles.flex}>
                 <AppText variant="heading">
-                  {completed.length} tasks completed
+                  {completed.length} {completed.length === 1 ? 'task' : 'tasks'} completed
                 </AppText>
                 <AppText variant="caption" secondary>
                   Proud of you — keep blooming
@@ -51,7 +51,7 @@ export default function CompletedScreen() {
             icon={Sprout}
             title="No completed tasks yet"
             message="Finish a task and it will bloom here."
-            action={<AddTaskButton variant="inline" label="Plan something" onPress={() => router.push('/add-task')} />}
+            action={<AddTaskButton variant="inline" label="Plan something" />}
           />
         }
       />

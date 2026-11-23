@@ -50,6 +50,13 @@ export const CATEGORIES: Category[] = [
   },
 ];
 
-export function getCategory(id: CategoryId): Category {
+export const CATEGORY_IDS: CategoryId[] = CATEGORIES.map((c) => c.id);
+
+export function isCategoryId(value: unknown): value is CategoryId {
+  return typeof value === 'string' && (CATEGORY_IDS as string[]).includes(value);
+}
+
+/** Safe lookup — falls back to the first category for unknown ids. */
+export function getCategory(id: CategoryId | string | undefined): Category {
   return CATEGORIES.find((c) => c.id === id) ?? CATEGORIES[0];
 }

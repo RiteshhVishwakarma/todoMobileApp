@@ -35,6 +35,7 @@ function RootNavigator() {
         }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="completed" />
+        <Stack.Screen name="task-details/[id]" />
         <Stack.Screen name="add-task" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
