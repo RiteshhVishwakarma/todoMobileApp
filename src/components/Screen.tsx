@@ -1,4 +1,3 @@
-import { Flower2 } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
@@ -7,6 +6,7 @@ import { useIsReady } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 
 import { AppBackground } from './AppBackground';
+import { AppLogo } from './AppLogo';
 import { AppText } from './AppText';
 
 type Props = {
@@ -19,7 +19,7 @@ function LoadingState() {
   return (
     <View style={styles.loading} accessibilityRole="progressbar" accessibilityLabel="Loading your tasks">
       <View style={[styles.loadingIcon, { backgroundColor: colors.card }]}>
-        <Flower2 size={28} color={colors.accent} strokeWidth={2} />
+        <AppLogo size={52} />
       </View>
       <ActivityIndicator color={colors.accent} />
       <AppText variant="caption" secondary>

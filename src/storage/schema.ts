@@ -15,11 +15,18 @@ import {
   MAX_CATEGORY_NAME_LENGTH,
   MAX_CUSTOM_CATEGORIES,
 } from '@/constants/categories';
-import type { CategoryRecord, Preferences, Priority, Task, ThemePreference } from '@/types/task';
+import type {
+  CategoryRecord,
+  Preferences,
+  Priority,
+  Task,
+  TaskSortMode,
+  ThemePreference,
+} from '@/types/task';
 import { isValidDateKey, isValidTime, isoToDateKey, todayKey } from '@/utils/date';
 
 /** Bump when the persisted shape changes, and add a step to `migrateData`. */
-export const STORAGE_VERSION = 1;
+export const STORAGE_VERSION = 2;
 export const STORAGE_KEY = 'blossom-todo:data';
 
 export const MAX_TITLE_LENGTH = 120;
@@ -36,6 +43,7 @@ export interface PersistedData {
 export const DEFAULT_PREFERENCES: Preferences = {
   theme: 'system',
   notifications: { reminders: true, daily: true, sound: false },
+  taskSort: 'dueDate',
 };
 
 export function createDefaultData(): PersistedData {
@@ -77,6 +85,12 @@ export function createId(prefix = ''): string {
 
 const PRIORITIES: Priority[] = ['low', 'medium', 'high'];
 const THEMES: ThemePreference[] = ['system', 'light', 'dark'];
+const SORT_MODES: TaskSortMode[] = ['dueDate', 'priority', 'manual'];
+
+/** Gives tasks consecutive `order` values (0, 1, 2…) in their current array order. */
+export function withSequentialOrder(tasks: Task[]): Task[] {
+  return tasks.map((t, i) => (t.order === i ? t : { ...t, order: i }));
+}
 
 // ---------------------------------------------------------------------------
 // Sanitizers
@@ -134,6 +148,8 @@ export function sanitizeTask(raw: unknown, knownCategoryIds: Set<string>): Task 
     isCompleted,
     createdAt,
     completedAt: isCompleted ? (isoOrUndefined(raw.completedAt) ?? createdAt) : undefined,
+    // NaN marks "missing"; sanitizeData assigns real positions afterwards.
+    order: typeof raw.order === 'number' && Number.isFinite(raw.order) ? raw.order : Number.NaN,
   };
 }
 
@@ -151,6 +167,9 @@ export function sanitizePreferences(raw: unknown): Preferences {
       daily: bool(notif.daily, d.notifications.daily),
       sound: bool(notif.sound, d.notifications.sound),
     },
+    taskSort: SORT_MODES.includes(prefs.taskSort as TaskSortMode)
+      ? (prefs.taskSort as TaskSortMode)
+      : d.taskSort,
   };
 }
 
@@ -192,8 +211,30 @@ export function sanitizeData(raw: unknown): SanitizeReport {
     tasks.push(task);
   }
 
+  // Manual order: if any position is missing (older data) or duplicated, renumber
+  // everything — keeping the existing relative order, then the stored list order.
+  const orders = tasks.map((t) => t.order);
+  const needsRenumber =
+    orders.some((o) => !Number.isFinite(o)) || new Set(orders).size !== orders.length;
+  const orderedTasks = needsRenumber
+    ? withSequentialOrder(
+        tasks
+          .map((t, i) => ({ t, i }))
+          .sort(
+            (a, b) =>
+              (Number.isFinite(a.t.order) ? a.t.order : a.i) -
+                (Number.isFinite(b.t.order) ? b.t.order : b.i) || a.i - b.i,
+          )
+          .map(({ t }) => t),
+      )
+    : tasks;
+
   return {
-    data: { tasks, customCategories, preferences: sanitizePreferences(obj.preferences) },
+    data: {
+      tasks: orderedTasks,
+      customCategories,
+      preferences: sanitizePreferences(obj.preferences),
+    },
     droppedTasks: rawTasks.length - tasks.length,
     droppedCategories: rawCategories.length - customCategories.length,
   };
@@ -208,8 +249,10 @@ export function knownCategoryIdSet(customCategories: CategoryRecord[]): Set<stri
 
 /**
  * Upgrades data saved by an older app version to the current shape.
- * v0 → v1: no structural change; data is validated by `sanitizeData` afterwards.
- * Add `if (version < 2) { … }` steps here when the schema changes.
+ * v0 → v1: no structural change.
+ * v1 → v2: tasks gain `order` (manual sort) and preferences gain `taskSort`.
+ *          Both are filled in by `sanitizeData`, which always runs after this.
+ * Add `if (version < 3) { … }` steps here when the schema changes again.
  */
 export function migrateData(raw: unknown, _fromVersion: number): unknown {
   return raw;

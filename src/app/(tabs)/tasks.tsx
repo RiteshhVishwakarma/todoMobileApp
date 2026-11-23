@@ -1,5 +1,14 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { ArrowUpDown, Flower2, Gift, Search, Sprout, type LucideIcon } from 'lucide-react-native';
+import {
+  ArrowUpDown,
+  Check,
+  Flower2,
+  Gift,
+  GripVertical,
+  Search,
+  Sprout,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
@@ -9,6 +18,7 @@ import { CategoryChip } from '@/components/CategoryChip';
 import { CustomHeader } from '@/components/CustomHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { FilterTabs } from '@/components/FilterTabs';
+import { ReorderList } from '@/components/ReorderList';
 import { Screen } from '@/components/Screen';
 import { SearchBar } from '@/components/SearchBar';
 import { SwipeableTaskCard } from '@/components/SwipeableTaskCard';
@@ -24,7 +34,16 @@ const FILTERS: { value: StatusFilter; label: string }[] = [
   { value: 'completed', label: 'Completed' },
 ];
 
-const SORT_LABELS: Record<SortMode, string> = { dueDate: 'Due date', priority: 'Priority' };
+const SORT_LABELS: Record<SortMode, string> = {
+  dueDate: 'Due date',
+  priority: 'Priority',
+  manual: 'My order',
+};
+const NEXT_SORT: Record<SortMode, SortMode> = {
+  dueDate: 'priority',
+  priority: 'manual',
+  manual: 'dueDate',
+};
 
 const EMPTY_COPY: Record<StatusFilter, { icon: LucideIcon; title: string; message: string }> = {
   all: { icon: Flower2, title: 'No tasks yet', message: 'Tap the + button to add your first task.' },
@@ -46,13 +65,33 @@ export default function TasksScreen() {
 
   const [status, setStatus] = useState<StatusFilter>('all');
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<SortMode>('dueDate');
+  // Sort choice is saved, so "My order" is still selected after a restart.
+  const sort = useAppStore((s) => s.preferences.taskSort);
+  const setSort = useAppStore((s) => s.setTaskSort);
+  const reorderTasks = useAppStore((s) => s.reorderTasks);
+  const [reorderRequested, setReorderRequested] = useState(false);
 
   const visible = useMemo(
     () => sortTasks(filterTasks(tasks, { status, query, category }), sort),
     [tasks, status, query, category, sort],
   );
   const activeCount = useMemo(() => tasks.filter((t) => !t.isCompleted).length, [tasks]);
+  // Reorder is offered in every sort mode whenever there are at least two tasks.
+  const canReorder = visible.length > 1;
+  const reordering = reorderRequested && canReorder && sort === 'manual';
+
+  const toggleReorder = () => {
+    if (reordering) {
+      setReorderRequested(false);
+      return;
+    }
+    if (sort !== 'manual') {
+      // Keep exactly what's on screen as the starting "My order", then switch to it.
+      reorderTasks(visible.map((t) => t.id));
+      setSort('manual');
+    }
+    setReorderRequested(true);
+  };
 
   const setCategory = (id: CategoryId | undefined) => router.setParams({ category: id ?? '' });
 
@@ -73,7 +112,10 @@ export default function TasksScreen() {
         subtitle={`${activeCount} active · ${tasks.length} total`}
         right={
           <Pressable
-            onPress={() => setSort((s) => (s === 'dueDate' ? 'priority' : 'dueDate'))}
+            onPress={() => {
+              setSort(NEXT_SORT[sort]);
+              setReorderRequested(false);
+            }}
             accessibilityRole="button"
             accessibilityLabel={`Sorted by ${SORT_LABELS[sort]}. Tap to change.`}
             style={[styles.sortBtn, { backgroundColor: colors.lightPink }]}>
@@ -107,22 +149,66 @@ export default function TasksScreen() {
         </ScrollView>
       </View>
 
-      <FlatList
-        data={visible}
-        keyExtractor={(t) => t.id}
-        renderItem={({ item }) => <SwipeableTaskCard task={item} showDate />}
-        contentContainerStyle={styles.list}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={<EmptyState {...empty} />}
-      />
+      {canReorder && (
+        <View style={styles.orderBar}>
+          <View style={styles.orderHint}>
+            <GripVertical size={15} color={colors.textSecondary} strokeWidth={2.2} />
+            <AppText variant="caption" secondary numberOfLines={1} style={styles.flex}>
+              {reordering
+                ? 'Press & hold a task, then drag'
+                : sort === 'manual'
+                  ? 'Your own order'
+                  : 'Arrange tasks your way'}
+            </AppText>
+          </View>
+          {canReorder && (
+            <Pressable
+              onPress={toggleReorder}
+              accessibilityRole="button"
+              accessibilityLabel={reordering ? 'Done reordering' : 'Reorder tasks'}
+              style={({ pressed }) => [
+                styles.orderBtn,
+                { backgroundColor: reordering ? colors.accent : colors.lightPink },
+                pressed && { opacity: 0.8 },
+              ]}>
+              {reordering ? (
+                <Check size={14} color={colors.white} strokeWidth={2.6} />
+              ) : (
+                <ArrowUpDown size={14} color={colors.accent} strokeWidth={2.4} />
+              )}
+              <AppText
+                variant="caption"
+                color={reordering ? colors.white : colors.accentText}
+                style={styles.bold}>
+                {reordering ? 'Done' : 'Reorder'}
+              </AppText>
+            </Pressable>
+          )}
+        </View>
+      )}
 
-      <AddTaskButton
-        onPress={() =>
-          router.push({ pathname: '/add-task', params: category ? { category } : {} })
-        }
-      />
+      {reordering ? (
+        <ReorderList tasks={visible} onReorder={reorderTasks} />
+      ) : (
+        <FlatList
+          data={visible}
+          keyExtractor={(t) => t.id}
+          renderItem={({ item }) => <SwipeableTaskCard task={item} showDate />}
+          contentContainerStyle={styles.list}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<EmptyState {...empty} />}
+        />
+      )}
+
+      {!reordering && (
+        <AddTaskButton
+          onPress={() =>
+            router.push({ pathname: '/add-task', params: category ? { category } : {} })
+          }
+        />
+      )}
     </Screen>
   );
 }
@@ -141,4 +227,21 @@ const styles = StyleSheet.create({
   chips: { paddingHorizontal: Spacing.xl, gap: Spacing.sm, paddingBottom: Spacing.md },
   list: { paddingHorizontal: Spacing.xl, paddingTop: Spacing.xs, paddingBottom: 110 },
   separator: { height: Spacing.md },
+  flex: { flex: 1 },
+  orderBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.md,
+  },
+  orderHint: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  orderBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: Radius.pill,
+  },
 });

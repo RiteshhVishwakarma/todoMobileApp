@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
-import { ChevronRight, CircleCheckBig, Cloud, Flower2, Heart, Moon } from 'lucide-react-native';
+import { ChevronRight, CircleCheckBig, Cloud, Heart, Moon } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { AddTaskButton } from '@/components/AddTaskButton';
+import { AppLogo } from '@/components/AppLogo';
 import { AppText } from '@/components/AppText';
 import { EmptyState } from '@/components/EmptyState';
 import { ProgressCard } from '@/components/ProgressCard';
@@ -58,7 +59,7 @@ export default function HomeScreen() {
             </View>
           </View>
           <View style={[styles.avatar, { backgroundColor: colors.lightPink }]}>
-            <Flower2 size={24} color={colors.accent} strokeWidth={2} />
+            <AppLogo size={42} />
           </View>
         </Animated.View>
 

@@ -3,6 +3,7 @@
  */
 import { BUILT_IN_CATEGORIES, MAX_CUSTOM_CATEGORIES } from '@/constants/categories';
 import type { CategoryRecord, Task } from '@/types/task';
+import { sortTasks } from '@/utils/tasks';
 
 import {
   createId,
@@ -10,6 +11,7 @@ import {
   migrateData,
   sanitizeData,
   STORAGE_VERSION,
+  withSequentialOrder,
   type PersistedData,
 } from './schema';
 
@@ -175,9 +177,16 @@ export function mergeData(
     stats.addedTasks++;
   }
 
+  // Manual order: imported tasks first (in their own order), then existing ones,
+  // renumbered so positions never collide.
+  const merged = withSequentialOrder([
+    ...sortTasks(imported, 'manual'),
+    ...sortTasks(tasks, 'manual'),
+  ]);
+
   return {
     data: {
-      tasks: [...imported, ...tasks],
+      tasks: merged,
       customCategories: categories,
       preferences: current.preferences,
     },

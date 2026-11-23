@@ -43,9 +43,11 @@ import type {
   Priority,
   Task,
   TaskInput,
+  TaskSortMode,
   ThemePreference,
 } from '@/types/task';
 import { isValidDateKey, isValidTime, todayKey } from '@/utils/date';
+import { sortTasks } from '@/utils/tasks';
 
 export { MAX_TITLE_LENGTH };
 
@@ -66,6 +68,12 @@ interface AppState extends PersistedData {
    * otherwise re-inserts it at `index`.
    */
   restoreTask: (task: Task, index?: number) => void;
+  /**
+   * Saves a new manual order. `orderedIds` is the visible (possibly filtered) list
+   * in its new order; hidden tasks keep their positions.
+   */
+  reorderTasks: (orderedIds: string[]) => void;
+  setTaskSort: (mode: TaskSortMode) => void;
 
   addCategory: (
     input: CategoryInput,
@@ -145,6 +153,8 @@ export const useAppStore = create<AppState>()(
           reminder: clean.reminder ?? false,
           isCompleted: false,
           createdAt: new Date().toISOString(),
+          // New tasks go to the top of the manual ("My order") arrangement.
+          order: get().tasks.reduce((min, t) => Math.min(min, t.order), 0) - 1,
         };
         set((s) => ({ tasks: [task, ...s.tasks] }));
         return task;
@@ -197,6 +207,32 @@ export const useAppStore = create<AppState>()(
           return { tasks: copy };
         }),
 
+      reorderTasks: (orderedIds) =>
+        set((s) => {
+          const byId = new Map(s.tasks.map((t) => [t.id, t]));
+          // Ignore stale or malformed requests (unknown / duplicate ids).
+          if (new Set(orderedIds).size !== orderedIds.length) return s;
+          if (!orderedIds.every((id) => byId.has(id))) return s;
+
+          // Current full arrangement; the visible tasks' slots get the new sequence.
+          const sequence = sortTasks(s.tasks, 'manual');
+          const moving = new Set(orderedIds);
+          let next = 0;
+          const arranged = sequence.map((t) =>
+            moving.has(t.id) ? (byId.get(orderedIds[next++]) as Task) : t,
+          );
+
+          const position = new Map(arranged.map((t, i) => [t.id, i]));
+          let changed = false;
+          const tasks = s.tasks.map((t) => {
+            const order = position.get(t.id) as number;
+            if (t.order === order) return t;
+            changed = true;
+            return { ...t, order };
+          });
+          return changed ? { tasks } : s;
+        }),
+
       // ----------------------------------------------------------- categories
       addCategory: (input) => {
         const name = input.name.trim().slice(0, MAX_CATEGORY_NAME_LENGTH);
@@ -233,6 +269,11 @@ export const useAppStore = create<AppState>()(
       setTheme: (theme) =>
         set((s) =>
           s.preferences.theme === theme ? s : { preferences: { ...s.preferences, theme } },
+        ),
+
+      setTaskSort: (mode) =>
+        set((s) =>
+          s.preferences.taskSort === mode ? s : { preferences: { ...s.preferences, taskSort: mode } },
         ),
 
       setNotification: (key, value) =>

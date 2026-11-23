@@ -1,8 +1,8 @@
-import type { CategoryId, Priority, Task } from '@/types/task';
+import type { CategoryId, Priority, Task, TaskSortMode } from '@/types/task';
 import { isoToDateKey } from '@/utils/date';
 
 export type StatusFilter = 'all' | 'active' | 'completed';
-export type SortMode = 'dueDate' | 'priority';
+export type SortMode = TaskSortMode;
 
 const PRIORITY_RANK: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
 
@@ -12,8 +12,17 @@ const dueKey = (t: Task) => `${t.dueDate} ${t.dueTime ?? '99:99'}`;
 const byDue = (a: Task, b: Task) => dueKey(a).localeCompare(dueKey(b));
 const byPriority = (a: Task, b: Task) => PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
 
-/** Sorts without mutating. Active tasks always come before completed ones. */
+/** The user's drag-and-drop order (newest first among equal positions). */
+const byManual = (a: Task, b: Task) =>
+  a.order - b.order || b.createdAt.localeCompare(a.createdAt);
+
+/**
+ * Sorts without mutating.
+ * - `dueDate` / `priority`: active tasks first, then completed ones.
+ * - `manual`: exactly the user's arrangement.
+ */
 export function sortTasks(tasks: Task[], mode: SortMode = 'dueDate'): Task[] {
+  if (mode === 'manual') return [...tasks].sort(byManual);
   return [...tasks].sort(
     (a, b) =>
       Number(a.isCompleted) - Number(b.isCompleted) ||

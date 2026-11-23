@@ -22,6 +22,8 @@ export interface Task {
   createdAt: string;
   /** ISO timestamp, set while the task is completed */
   completedAt?: string;
+  /** Position in the user's manual ("My order") arrangement — lower comes first. */
+  order: number;
 }
 
 /** Fields the user edits in the Add/Edit form. */
@@ -62,7 +64,11 @@ export interface NotificationPreferences {
   sound: boolean;
 }
 
+/** How the Tasks list is sorted. `manual` = the user's drag-and-drop order. */
+export type TaskSortMode = 'dueDate' | 'priority' | 'manual';
+
 export interface Preferences {
   theme: ThemePreference;
   notifications: NotificationPreferences;
+  taskSort: TaskSortMode;
 }
