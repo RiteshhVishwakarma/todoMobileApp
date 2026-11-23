@@ -9,13 +9,13 @@ import { EmptyState } from '@/components/EmptyState';
 import { Screen } from '@/components/Screen';
 import { TaskCard } from '@/components/TaskCard';
 import { Radius, Spacing } from '@/constants/colors';
-import { useTaskStore } from '@/stores/taskStore';
+import { useAppStore } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import { completedTasks } from '@/utils/tasks';
 
 export default function CompletedScreen() {
   const { colors } = useAppTheme();
-  const tasks = useTaskStore((s) => s.tasks);
+  const tasks = useAppStore((s) => s.tasks);
   const completed = useMemo(() => completedTasks(tasks), [tasks]);
 
   return (

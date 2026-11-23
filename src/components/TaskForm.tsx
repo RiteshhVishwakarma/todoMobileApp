@@ -11,9 +11,8 @@ import {
   View,
 } from 'react-native';
 
-import { CATEGORIES } from '@/constants/categories';
 import { Radius, Spacing } from '@/constants/colors';
-import { MAX_TITLE_LENGTH } from '@/stores/taskStore';
+import { MAX_TITLE_LENGTH, useCategories } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import type { Priority, TaskInput } from '@/types/task';
 import {
@@ -49,6 +48,7 @@ type Props = {
 
 export function TaskForm({ heading, submitLabel, initial, onSubmit, onCancel }: Props) {
   const { colors } = useAppTheme();
+  const categories = useCategories();
   const today = todayKey();
 
   const [title, setTitle] = useState(initial?.title ?? '');
@@ -212,7 +212,7 @@ export function TaskForm({ heading, submitLabel, initial, onSubmit, onCancel }: 
           Category
         </AppText>
         <View style={[styles.row, styles.wrap]}>
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <CategoryChip
               key={c.id}
               category={c}

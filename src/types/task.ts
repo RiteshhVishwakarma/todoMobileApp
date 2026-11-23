@@ -2,7 +2,8 @@ import type { LucideIcon } from 'lucide-react-native';
 
 export type Priority = 'high' | 'medium' | 'low';
 
-export type CategoryId = 'personal' | 'work' | 'study' | 'shopping' | 'health';
+/** Built-in ids ('personal', 'work', …) or `custom-…` ids for user categories. */
+export type CategoryId = string;
 
 export interface Task {
   id: string;
@@ -29,6 +30,17 @@ export type TaskInput = Pick<
   'title' | 'description' | 'category' | 'priority' | 'dueDate' | 'dueTime' | 'reminder'
 >;
 
+/** Serializable category, as stored on disk. Icons/colors are referenced by key. */
+export interface CategoryRecord {
+  id: CategoryId;
+  name: string;
+  iconKey: string;
+  colorKey: string;
+  /** ISO timestamp (custom categories only) */
+  createdAt?: string;
+}
+
+/** Category resolved for rendering (icon component + theme colors). */
 export interface Category {
   id: CategoryId;
   name: string;
@@ -39,4 +51,18 @@ export interface Category {
   /** Soft tint used behind the icon (light / dark theme) */
   tint: string;
   darkTint: string;
+  isCustom: boolean;
+}
+
+export type ThemePreference = 'system' | 'light' | 'dark';
+
+export interface NotificationPreferences {
+  reminders: boolean;
+  daily: boolean;
+  sound: boolean;
+}
+
+export interface Preferences {
+  theme: ThemePreference;
+  notifications: NotificationPreferences;
 }

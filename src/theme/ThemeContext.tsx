@@ -1,9 +1,11 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useContext, useMemo, type ReactNode } from 'react';
 
 import { Colors, type ThemePalette } from '@/constants/colors';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useAppStore } from '@/stores/appStore';
+import type { ThemePreference } from '@/types/task';
 
-export type ThemePreference = 'system' | 'light' | 'dark';
+export type { ThemePreference };
 
 type ThemeContextValue = {
   colors: ThemePalette;
@@ -14,12 +16,11 @@ type ThemeContextValue = {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
-/**
- * In-memory theme preference (not persisted yet — storage comes in a later phase).
- */
+/** Resolves the saved theme preference (persisted in the app store) into a palette. */
 export function AppThemeProvider({ children }: { children: ReactNode }) {
   const systemScheme = useColorScheme();
-  const [preference, setPreference] = useState<ThemePreference>('system');
+  const preference = useAppStore((s) => s.preferences.theme);
+  const setPreference = useAppStore((s) => s.setTheme);
 
   const value = useMemo<ThemeContextValue>(() => {
     const resolved = preference === 'system' ? (systemScheme ?? 'light') : preference;
@@ -30,7 +31,7 @@ export function AppThemeProvider({ children }: { children: ReactNode }) {
       preference,
       setPreference,
     };
-  }, [preference, systemScheme]);
+  }, [preference, systemScheme, setPreference]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }

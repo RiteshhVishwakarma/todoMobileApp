@@ -1,15 +1,16 @@
 import { router } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { useMemo } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
 import { CategoryCard } from '@/components/CategoryCard';
 import { CustomHeader } from '@/components/CustomHeader';
+import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { Screen } from '@/components/Screen';
-import { CATEGORIES } from '@/constants/categories';
+import { MAX_CUSTOM_CATEGORIES } from '@/constants/categories';
 import { Radius, Spacing } from '@/constants/colors';
-import { useTaskStore } from '@/stores/taskStore';
+import { useAppStore, useCategories } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import type { Category } from '@/types/task';
 import { categoryStats } from '@/utils/tasks';
@@ -22,17 +23,22 @@ function chunk<T>(items: T[], size: number): T[][] {
 
 export default function CategoriesScreen() {
   const { colors } = useAppTheme();
+  const categories = useCategories();
+  const tasks = useAppStore((s) => s.tasks);
+  const deleteCategory = useAppStore((s) => s.deleteCategory);
+  const [pendingDelete, setPendingDelete] = useState<Category | null>(null);
 
-  const tasks = useTaskStore((s) => s.tasks);
   const statsById = useMemo(() => categoryStats(tasks), [tasks]);
   const stats = (c: Category) => statsById[c.id] ?? { total: 0, completed: 0 };
   const openCategory = (c: Category) =>
     router.navigate({ pathname: '/tasks', params: { category: c.id } });
 
-  const onAdd = () => Alert.alert('Add Category', 'Custom categories are coming soon.');
+  const customCount = categories.filter((c) => c.isCustom).length;
+  const canAdd = customCount < MAX_CUSTOM_CATEGORIES;
 
-  // Pad the grid with the "add" tile so it sits in the last row.
-  const tiles: (Category | 'add')[] = [...CATEGORIES, 'add'];
+  // The "add" tile sits at the end of the grid.
+  const tiles: (Category | 'add')[] = canAdd ? [...categories, 'add'] : categories;
+  const pendingCount = pendingDelete ? stats(pendingDelete).total : 0;
 
   return (
     <Screen>
@@ -44,7 +50,7 @@ export default function CategoriesScreen() {
               item === 'add' ? (
                 <Pressable
                   key="add"
-                  onPress={onAdd}
+                  onPress={() => router.push('/add-category')}
                   accessibilityRole="button"
                   accessibilityLabel="Add category"
                   style={({ pressed }) => [
@@ -65,6 +71,7 @@ export default function CategoriesScreen() {
                   category={item}
                   {...stats(item)}
                   onPress={() => openCategory(item)}
+                  onDelete={item.isCustom ? () => setPendingDelete(item) : undefined}
                 />
               ),
             )}
@@ -72,6 +79,21 @@ export default function CategoriesScreen() {
           </View>
         ))}
       </ScrollView>
+
+      <DeleteConfirmation
+        visible={pendingDelete !== null}
+        title={`Delete “${pendingDelete?.name ?? ''}”?`}
+        message={
+          pendingCount > 0
+            ? `Its ${pendingCount} ${pendingCount === 1 ? 'task' : 'tasks'} will move to Personal.`
+            : 'This category has no tasks.'
+        }
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (pendingDelete) deleteCategory(pendingDelete.id);
+          setPendingDelete(null);
+        }}
+      />
     </Screen>
   );
 }

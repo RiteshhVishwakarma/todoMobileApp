@@ -4,8 +4,7 @@ import { AddTaskButton } from '@/components/AddTaskButton';
 import { EmptyState } from '@/components/EmptyState';
 import { Screen } from '@/components/Screen';
 import { TaskForm } from '@/components/TaskForm';
-import { isCategoryId } from '@/constants/categories';
-import { useTask, useTaskStore } from '@/stores/taskStore';
+import { useAppStore, useCategories, useTask } from '@/stores/appStore';
 import type { TaskInput } from '@/types/task';
 import { isValidDateKey } from '@/utils/date';
 import { goBackOrHome } from '@/utils/navigation';
@@ -22,13 +21,14 @@ type Params = {
 export default function AddTaskModal() {
   const { id, date, category } = useLocalSearchParams<Params>();
   const existing = useTask(id);
-  const addTask = useTaskStore((s) => s.addTask);
-  const updateTask = useTaskStore((s) => s.updateTask);
+  const addTask = useAppStore((s) => s.addTask);
+  const updateTask = useAppStore((s) => s.updateTask);
+  const categories = useCategories();
   const isEdit = Boolean(id);
 
   const initial: Partial<TaskInput> = existing ?? {
     dueDate: isValidDateKey(date) ? date : undefined,
-    category: isCategoryId(category) ? category : undefined,
+    category: categories.some((c) => c.id === category) ? category : undefined,
   };
 
   const handleSubmit = (input: TaskInput) => {

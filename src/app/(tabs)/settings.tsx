@@ -12,19 +12,23 @@ import {
   Upload,
   Volume2,
   AlarmClock,
+  CircleAlert,
+  CircleCheckBig,
   type LucideIcon,
 } from 'lucide-react-native';
-import { useState, type ReactNode } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import type { ComponentProps, ReactNode } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { AppText } from '@/components/AppText';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { CustomHeader } from '@/components/CustomHeader';
-import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { Screen } from '@/components/Screen';
 import { Radius, Spacing } from '@/constants/colors';
-import { useTaskStore } from '@/stores/taskStore';
+import { describeBackup, useDataManagement } from '@/hooks/use-data-management';
+import { useAppStore } from '@/stores/appStore';
 import { useAppTheme, type ThemePreference } from '@/theme/ThemeContext';
 import { softShadow } from '@/theme/styles';
+import type { NotificationPreferences } from '@/types/task';
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; Icon: LucideIcon }[] = [
   { value: 'light', label: 'Light', Icon: Sun },
@@ -97,22 +101,82 @@ function Row({ Icon, label, hint, danger, last, right, onPress }: RowProps) {
 
 export default function SettingsScreen() {
   const { colors, preference, setPreference } = useAppTheme();
-  const [notifications, setNotifications] = useState({ reminders: true, daily: true, sound: false });
+  const notifications = useAppStore((s) => s.preferences.notifications);
+  const setNotification = useAppStore((s) => s.setNotification);
+  const taskCount = useAppStore((s) => s.tasks.length);
+  const customCount = useAppStore((s) => s.customCategories.length);
+  const data = useDataManagement();
   const version = Constants.expoConfig?.version ?? '1.0.0';
-  const taskCount = useTaskStore((s) => s.tasks.length);
-  const clearAll = useTaskStore((s) => s.clearAll);
-  const [confirmClear, setConfirmClear] = useState(false);
 
-  const toggle = (key: keyof typeof notifications) => (value: boolean) =>
-    setNotifications((n) => ({ ...n, [key]: value }));
+  const toggle = (key: keyof NotificationPreferences) => (value: boolean) =>
+    setNotification(key, value);
+  const dialog = data.dialog;
+  const tasksLabel = `${taskCount} ${taskCount === 1 ? 'task' : 'tasks'}`;
+
+  const dialogContent: Omit<ComponentProps<typeof ConfirmDialog>, 'visible' | 'onDismiss'> | null =
+    !dialog
+      ? null
+      : dialog.kind === 'confirmClear'
+        ? {
+            icon: Trash2,
+            tone: 'danger',
+            title: 'Clear all data?',
+            message: `${tasksLabel}, ${customCount} custom ${
+              customCount === 1 ? 'category' : 'categories'
+            } and your settings will be permanently removed. Consider exporting a backup first.`,
+            actions: [
+              { label: 'Cancel', onPress: data.close },
+              { label: 'Clear all', variant: 'danger', onPress: data.clearAll },
+            ],
+          }
+        : dialog.kind === 'importPreview'
+          ? {
+              // Merge or replace is always the user's explicit choice — never silent.
+              icon: Upload,
+              title: 'Import backup?',
+              message: describeBackup(dialog.backup, taskCount),
+              actions: [
+                {
+                  label: 'Add to my tasks',
+                  variant: 'primary',
+                  onPress: () => data.mergeImport(dialog.backup),
+                },
+                {
+                  label: 'Replace everything',
+                  variant: 'danger',
+                  onPress: () => data.askReplace(dialog.backup),
+                },
+                { label: 'Cancel', onPress: data.close },
+              ],
+            }
+          : dialog.kind === 'confirmReplace'
+            ? {
+                icon: Trash2,
+                tone: 'danger',
+                title: 'Replace all your data?',
+                message: `Your current ${tasksLabel}, categories and settings will be replaced by the backup. This can't be undone.`,
+                actions: [
+                  { label: 'Cancel', onPress: data.close },
+                  {
+                    label: 'Replace',
+                    variant: 'danger',
+                    onPress: () => data.replaceImport(dialog.backup),
+                  },
+                ],
+              }
+            : {
+                icon: dialog.tone === 'danger' ? CircleAlert : CircleCheckBig,
+                tone: dialog.tone,
+                title: dialog.title,
+                message: dialog.message,
+                actions: [{ label: 'OK', variant: 'primary', onPress: data.close }],
+              };
 
   const switchProps = {
     trackColor: { false: colors.border, true: colors.primary },
     thumbColor: colors.white,
     ios_backgroundColor: colors.border,
   };
-
-  const comingSoon = (what: string) => () => Alert.alert(what, 'This will be available soon.');
 
   return (
     <Screen>
@@ -187,15 +251,26 @@ export default function SettingsScreen() {
 
         {/* Data */}
         <Group title="Data Management">
-          <Row Icon={Download} label="Export tasks" hint="Save a backup file" onPress={comingSoon('Export tasks')} />
-          <Row Icon={Upload} label="Import tasks" hint="Restore from a backup" onPress={comingSoon('Import tasks')} />
+          <Row
+            Icon={Download}
+            label="Export backup"
+            hint="Save all tasks & settings as a JSON file"
+            onPress={data.exportData}
+            right={data.busy ? <ActivityIndicator color={colors.accent} /> : undefined}
+          />
+          <Row
+            Icon={Upload}
+            label="Import backup"
+            hint="Restore from a JSON backup file"
+            onPress={data.startImport}
+          />
           <Row
             Icon={Trash2}
             label="Clear all data"
             danger
             last
-            hint={taskCount === 0 ? 'No tasks to clear' : `Remove all ${taskCount} tasks`}
-            onPress={taskCount === 0 ? undefined : () => setConfirmClear(true)}
+            hint="Remove all tasks, categories & settings"
+            onPress={data.askClear}
           />
         </Group>
 
@@ -229,17 +304,13 @@ export default function SettingsScreen() {
         </View>
       </ScrollView>
 
-      <DeleteConfirmation
-        visible={confirmClear}
-        title="Clear all data?"
-        message={`All ${taskCount} tasks will be permanently removed.`}
-        confirmLabel="Clear all"
-        onCancel={() => setConfirmClear(false)}
-        onConfirm={() => {
-          clearAll();
-          setConfirmClear(false);
-        }}
-      />
+      {/*
+        One dialog whose content follows the flow (iOS can't reliably show a second
+        Modal while the first is closing).
+      */}
+      {dialogContent && (
+        <ConfirmDialog visible onDismiss={data.close} {...dialogContent} />
+      )}
     </Screen>
   );
 }

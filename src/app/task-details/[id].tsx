@@ -20,9 +20,8 @@ import { DeleteConfirmation } from '@/components/DeleteConfirmation';
 import { EmptyState } from '@/components/EmptyState';
 import { PriorityBadge } from '@/components/PriorityBadge';
 import { Screen } from '@/components/Screen';
-import { getCategory } from '@/constants/categories';
 import { Radius, Spacing } from '@/constants/colors';
-import { useTask, useTaskStore } from '@/stores/taskStore';
+import { useAppStore, useCategoryResolver, useTask } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import { softShadow } from '@/theme/styles';
 import { formatRelativeDate, formatTime, isoToDateKey } from '@/utils/date';
@@ -61,10 +60,11 @@ export default function TaskDetailsScreen() {
   const { colors, isDark } = useAppTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const task = useTask(id);
-  const toggleCompleted = useTaskStore((s) => s.toggleCompleted);
-  const deleteTask = useTaskStore((s) => s.deleteTask);
+  const toggleCompleted = useAppStore((s) => s.toggleCompleted);
+  const deleteTask = useAppStore((s) => s.deleteTask);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [deleted, setDeleted] = useState(false);
+  const resolveCategory = useCategoryResolver();
 
   if (!task) {
     // Just deleted: render an empty screen while it animates away instead of "not found".
@@ -81,7 +81,7 @@ export default function TaskDetailsScreen() {
     );
   }
 
-  const category = getCategory(task.category);
+  const category = resolveCategory(task.category);
   const CategoryIcon = category.icon;
   const createdKey = isoToDateKey(task.createdAt);
   const completedKey = isoToDateKey(task.completedAt);

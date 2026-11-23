@@ -12,7 +12,7 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { TaskCard } from '@/components/TaskCard';
 import { Radius, Spacing } from '@/constants/colors';
-import { useTaskStore } from '@/stores/taskStore';
+import { useAppStore } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import { softShadow } from '@/theme/styles';
 import { formatLongDate, greetingForHour, todayKey } from '@/utils/date';
@@ -23,7 +23,7 @@ export default function HomeScreen() {
   const now = new Date();
   const today = todayKey();
 
-  const tasks = useTaskStore((s) => s.tasks);
+  const tasks = useAppStore((s) => s.tasks);
 
   const { todayTasks, overdue, upcoming, completedCount, todayProgress } = useMemo(() => {
     const todays = tasksOnDate(tasks, today);

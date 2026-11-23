@@ -1,4 +1,4 @@
-import { ChevronRight } from 'lucide-react-native';
+import { ChevronRight, Trash2 } from 'lucide-react-native';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Radius, Spacing } from '@/constants/colors';
@@ -13,9 +13,11 @@ type Props = {
   total: number;
   completed: number;
   onPress?: () => void;
+  /** Shown for custom categories only. */
+  onDelete?: () => void;
 };
 
-export function CategoryCard({ category, total, completed, onPress }: Props) {
+export function CategoryCard({ category, total, completed, onPress, onDelete }: Props) {
   const { colors, isDark } = useAppTheme();
   const tint = isDark ? category.darkTint : category.tint;
   const iconColor = isDark ? category.darkColor : category.color;
@@ -37,10 +39,25 @@ export function CategoryCard({ category, total, completed, onPress }: Props) {
         <View style={[styles.iconWrap, { backgroundColor: tint }]}>
           <Icon size={24} color={iconColor} strokeWidth={2} />
         </View>
-        <ChevronRight size={18} color={colors.textSecondary} strokeWidth={2} />
+        {onDelete ? (
+          <Pressable
+            onPress={onDelete}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={`Delete category ${category.name}`}
+            style={({ pressed }) => [
+              styles.deleteBtn,
+              { backgroundColor: colors.priorityHighSoft },
+              pressed && styles.pressed,
+            ]}>
+            <Trash2 size={14} color={colors.priorityHigh} strokeWidth={2.2} />
+          </Pressable>
+        ) : (
+          <ChevronRight size={18} color={colors.textSecondary} strokeWidth={2} />
+        )}
       </View>
 
-      <AppText variant="heading" style={styles.name}>
+      <AppText variant="heading" numberOfLines={1} style={styles.name}>
         {category.name}
       </AppText>
       <AppText variant="caption" secondary>
@@ -77,6 +94,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   name: { marginBottom: 2 },
+  deleteBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   track: { height: 6, borderRadius: 3, marginTop: Spacing.md, overflow: 'hidden' },
   fill: { height: '100%', borderRadius: 3 },
 });

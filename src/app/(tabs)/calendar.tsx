@@ -12,7 +12,7 @@ import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
 import { TaskCard } from '@/components/TaskCard';
 import { Radius, Spacing } from '@/constants/colors';
-import { useTaskStore } from '@/stores/taskStore';
+import { useAppStore } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import { formatLongDate, fromDateKey, todayKey } from '@/utils/date';
 import { dateIndicators, tasksOnDate } from '@/utils/tasks';
@@ -20,7 +20,7 @@ import { dateIndicators, tasksOnDate } from '@/utils/tasks';
 export default function CalendarScreen() {
   const { colors } = useAppTheme();
   const today = todayKey();
-  const tasks = useTaskStore((s) => s.tasks);
+  const tasks = useAppStore((s) => s.tasks);
   const [cursor, setCursor] = useState(() => cursorFor(new Date()));
   const [selected, setSelected] = useState(today);
 

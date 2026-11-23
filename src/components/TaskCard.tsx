@@ -3,9 +3,8 @@ import { CalendarDays, Check, CircleCheckBig, Clock, RotateCcw } from 'lucide-re
 import { memo, useState } from 'react';
 import { Animated, Pressable, StyleSheet, View } from 'react-native';
 
-import { getCategory } from '@/constants/categories';
 import { Radius, Spacing } from '@/constants/colors';
-import { useTaskStore } from '@/stores/taskStore';
+import { useAppStore, useCategoryResolver } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import { softShadow } from '@/theme/styles';
 import type { Task } from '@/types/task';
@@ -24,9 +23,9 @@ type Props = {
 
 function TaskCardBase({ task, showDate, showCompletedDate }: Props) {
   const { colors, isDark } = useAppTheme();
-  const toggleCompleted = useTaskStore((s) => s.toggleCompleted);
+  const toggleCompleted = useAppStore((s) => s.toggleCompleted);
   const [scale] = useState(() => new Animated.Value(1));
-  const category = getCategory(task.category);
+  const category = useCategoryResolver()(task.category);
   const CategoryIcon = category.icon;
   const done = task.isCompleted;
   const overdue = !done && task.dueDate < todayKey();

@@ -12,9 +12,8 @@ import { FilterTabs } from '@/components/FilterTabs';
 import { Screen } from '@/components/Screen';
 import { SearchBar } from '@/components/SearchBar';
 import { TaskCard } from '@/components/TaskCard';
-import { CATEGORIES, getCategory, isCategoryId } from '@/constants/categories';
 import { Radius, Spacing } from '@/constants/colors';
-import { useTaskStore } from '@/stores/taskStore';
+import { useAppStore, useCategories } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import type { CategoryId } from '@/types/task';
 import { filterTasks, sortTasks, type SortMode, type StatusFilter } from '@/utils/tasks';
@@ -35,10 +34,15 @@ const EMPTY_COPY: Record<StatusFilter, { icon: LucideIcon; title: string; messag
 
 export default function TasksScreen() {
   const { colors } = useAppTheme();
-  const tasks = useTaskStore((s) => s.tasks);
+  const tasks = useAppStore((s) => s.tasks);
   // Category filter lives in the URL so the Categories screen can link straight here.
   const params = useLocalSearchParams<{ category?: string }>();
-  const category: CategoryId | undefined = isCategoryId(params.category) ? params.category : undefined;
+  const categories = useCategories();
+  const activeCategory = useMemo(
+    () => categories.find((c) => c.id === params.category),
+    [categories, params.category],
+  );
+  const category: CategoryId | undefined = activeCategory?.id;
 
   const [status, setStatus] = useState<StatusFilter>('all');
   const [query, setQuery] = useState('');
@@ -54,10 +58,10 @@ export default function TasksScreen() {
 
   const empty = query.trim()
     ? { icon: Search, title: 'No matches', message: `Nothing found for “${query.trim()}”.` }
-    : category
+    : activeCategory
       ? {
-          icon: getCategory(category).icon,
-          title: `No ${getCategory(category).name.toLowerCase()} tasks`,
+          icon: activeCategory.icon,
+          title: `No ${activeCategory.name.toLowerCase()} tasks`,
           message: 'Try another filter, or add a new task.',
         }
       : EMPTY_COPY[status];
@@ -92,7 +96,7 @@ export default function TasksScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.chips}>
           <CategoryChip label="All" active={!category} onPress={() => setCategory(undefined)} />
-          {CATEGORIES.map((c) => (
+          {categories.map((c) => (
             <CategoryChip
               key={c.id}
               category={c}
