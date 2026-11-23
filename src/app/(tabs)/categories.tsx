@@ -55,7 +55,7 @@ export default function CategoriesScreen() {
                   <View style={[styles.addIcon, { backgroundColor: colors.card }]}>
                     <Plus size={22} color={colors.accent} strokeWidth={2.5} />
                   </View>
-                  <AppText variant="bodyStrong" color={colors.accent}>
+                  <AppText variant="bodyStrong" color={colors.accentText}>
                     Add Category
                   </AppText>
                 </Pressable>

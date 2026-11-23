@@ -46,7 +46,7 @@ export default function CalendarScreen() {
             onPress={goToday}
             accessibilityRole="button"
             style={[styles.todayBtn, { backgroundColor: colors.lightPink }]}>
-            <AppText variant="caption" color={colors.accent} style={styles.bold}>
+            <AppText variant="caption" color={colors.accentText} style={styles.bold}>
               Today
             </AppText>
           </Pressable>
@@ -82,7 +82,7 @@ export default function CalendarScreen() {
                 accessibilityRole="button"
                 style={[styles.addHere, { backgroundColor: colors.lightPink }]}>
                 <CalendarPlus size={16} color={colors.accent} strokeWidth={2.2} />
-                <AppText variant="caption" color={colors.accent} style={styles.bold}>
+                <AppText variant="caption" color={colors.accentText} style={styles.bold}>
                   Plan something for this day
                 </AppText>
               </Pressable>

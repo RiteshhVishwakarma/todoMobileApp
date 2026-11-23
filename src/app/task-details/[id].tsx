@@ -140,7 +140,7 @@ export default function TaskDetailsScreen() {
               ]}>
               <AppText
                 variant="caption"
-                color={task.isCompleted ? colors.success : colors.accent}
+                color={task.isCompleted ? colors.success : colors.accentText}
                 style={styles.bold}>
                 {task.isCompleted ? 'Completed' : 'Active'}
               </AppText>
@@ -211,7 +211,7 @@ export default function TaskDetailsScreen() {
           ) : (
             <CircleCheckBig size={18} color={colors.white} strokeWidth={2.4} />
           )}
-          <AppText variant="bodyStrong" color={task.isCompleted ? colors.accent : colors.white}>
+          <AppText variant="bodyStrong" color={task.isCompleted ? colors.accentText : colors.white}>
             {task.isCompleted ? 'Mark as active' : 'Mark as done'}
           </AppText>
         </Pressable>

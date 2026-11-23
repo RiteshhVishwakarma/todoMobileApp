@@ -112,7 +112,7 @@ export function MonthCalendar({
                 ]}>
                 <AppText
                   variant="bodyStrong"
-                  color={isSelected ? colors.white : isToday ? colors.accent : colors.text}>
+                  color={isSelected ? colors.white : isToday ? colors.accentText : colors.text}>
                   {date.getDate()}
                 </AppText>
                 {indicators && (
@@ -178,9 +178,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
-  cell: { width: `${100 / 7}%`, alignItems: 'center', paddingVertical: 3 },
+  cell: { width: `${100 / 7}%`, alignItems: 'center', paddingVertical: 3, paddingHorizontal: 1 },
+  // Fluid width so 7 columns always fit, even on 320dp phones; capped on wide screens.
   day: {
-    width: 40,
+    width: '100%',
+    maxWidth: 44,
     height: 44,
     borderRadius: 14,
     alignItems: 'center',

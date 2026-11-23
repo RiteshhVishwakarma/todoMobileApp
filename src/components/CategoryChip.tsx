@@ -40,7 +40,7 @@ export function CategoryChip({ category, label, active, onPress }: Props) {
       )}
       <AppText
         variant="caption"
-        color={active ? colors.accent : colors.text}
+        color={active ? colors.accentText : colors.text}
         style={styles.label}>
         {label ?? category?.name ?? 'All'}
       </AppText>

@@ -20,13 +20,13 @@ export function SectionHeader({ title, count, actionLabel, onAction }: Props) {
         <AppText variant="heading">{title}</AppText>
         {count !== undefined && (
           <View style={[styles.count, { backgroundColor: colors.lightPink }]}>
-            <AppText style={[styles.countText, { color: colors.accent }]}>{count}</AppText>
+            <AppText style={[styles.countText, { color: colors.accentText }]}>{count}</AppText>
           </View>
         )}
       </View>
       {actionLabel && (
         <Pressable onPress={onAction} hitSlop={8} accessibilityRole="button">
-          <AppText variant="caption" color={colors.accent} style={styles.action}>
+          <AppText variant="caption" color={colors.accentText} style={styles.action}>
             {actionLabel}
           </AppText>
         </Pressable>

@@ -146,7 +146,7 @@ function TaskCardBase({ task, showDate, showCompletedDate }: Props) {
             pressed && styles.pressed,
           ]}>
           <RotateCcw size={13} color={colors.accent} strokeWidth={2.4} />
-          <AppText style={[styles.restoreText, { color: colors.accent }]}>Restore</AppText>
+          <AppText style={[styles.restoreText, { color: colors.accentText }]}>Restore</AppText>
         </Pressable>
       ) : (
         <PriorityBadge priority={task.priority} />

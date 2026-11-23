@@ -313,7 +313,7 @@ export function TaskForm({ heading, submitLabel, initial, onSubmit, onCancel }: 
             { backgroundColor: colors.lightPink },
             pressed && styles.pressed,
           ]}>
-          <AppText variant="bodyStrong" color={colors.accent}>
+          <AppText variant="bodyStrong" color={colors.accentText}>
             Cancel
           </AppText>
         </Pressable>

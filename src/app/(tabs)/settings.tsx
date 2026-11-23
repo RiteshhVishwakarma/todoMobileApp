@@ -143,7 +143,7 @@ export default function SettingsScreen() {
                   />
                   <AppText
                     variant="caption"
-                    color={active ? colors.accent : colors.textSecondary}
+                    color={active ? colors.accentText : colors.textSecondary}
                     style={styles.bold}>
                     {label}
                   </AppText>

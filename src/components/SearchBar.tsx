@@ -1,5 +1,5 @@
 import { Search, X } from 'lucide-react-native';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Radius, Spacing } from '@/constants/colors';
 import { useAppTheme } from '@/theme/ThemeContext';
@@ -55,7 +55,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius.lg,
     borderWidth: 1,
   },
-  input: { flex: 1, fontSize: 15, height: '100%', outlineStyle: 'none' } as object,
+  input: {
+    flex: 1,
+    fontSize: 15,
+    height: '100%',
+    // Removes the browser focus ring; web-only (invalid on iOS/Android).
+    ...Platform.select({ web: { outlineStyle: 'none' } as object }),
+  },
   clear: {
     width: 20,
     height: 20,

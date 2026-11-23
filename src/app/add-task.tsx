@@ -1,13 +1,11 @@
 import { useLocalSearchParams } from 'expo-router';
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AddTaskButton } from '@/components/AddTaskButton';
 import { EmptyState } from '@/components/EmptyState';
+import { Screen } from '@/components/Screen';
 import { TaskForm } from '@/components/TaskForm';
 import { isCategoryId } from '@/constants/categories';
 import { useTask, useTaskStore } from '@/stores/taskStore';
-import { useAppTheme } from '@/theme/ThemeContext';
 import type { TaskInput } from '@/types/task';
 import { isValidDateKey } from '@/utils/date';
 import { goBackOrHome } from '@/utils/navigation';
@@ -22,7 +20,6 @@ type Params = {
 
 /** Add/Edit task sheet. `/add-task` creates; `/add-task?id=…` edits. */
 export default function AddTaskModal() {
-  const { colors } = useAppTheme();
   const { id, date, category } = useLocalSearchParams<Params>();
   const existing = useTask(id);
   const addTask = useTaskStore((s) => s.addTask);
@@ -41,9 +38,7 @@ export default function AddTaskModal() {
   };
 
   return (
-    <SafeAreaView
-      edges={['top', 'bottom']}
-      style={[styles.root, { backgroundColor: colors.background }]}>
+    <Screen edges={['top', 'bottom']}>
       {isEdit && !existing ? (
         <EmptyState
           title="Task not found"
@@ -59,10 +54,6 @@ export default function AddTaskModal() {
           onCancel={goBackOrHome}
         />
       )}
-    </SafeAreaView>
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1 },
-});

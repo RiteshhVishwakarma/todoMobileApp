@@ -30,7 +30,7 @@ export function FilterTabs<T extends string>({ options, value, onChange }: Props
             style={[styles.item, active && { backgroundColor: colors.card }]}>
             <AppText
               variant="caption"
-              color={active ? colors.accent : colors.textSecondary}
+              color={active ? colors.accentText : colors.textSecondary}
               style={styles.label}>
               {opt.label}
             </AppText>

@@ -74,7 +74,7 @@ export default function TasksScreen() {
             accessibilityLabel={`Sorted by ${SORT_LABELS[sort]}. Tap to change.`}
             style={[styles.sortBtn, { backgroundColor: colors.lightPink }]}>
             <ArrowUpDown size={14} color={colors.accent} strokeWidth={2.4} />
-            <AppText variant="caption" color={colors.accent} style={styles.bold}>
+            <AppText variant="caption" color={colors.accentText} style={styles.bold}>
               {SORT_LABELS[sort]}
             </AppText>
           </Pressable>

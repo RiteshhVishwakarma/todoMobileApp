@@ -46,7 +46,14 @@ export default function HomeScreen() {
               {greetingForHour(now.getHours())} · {formatLongDate(now)}
             </AppText>
             <View style={styles.greetingRow}>
-              <AppText variant="display">Hey, Beautiful!</AppText>
+              <AppText
+                variant="display"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.75}
+                style={styles.greetingText}>
+                Hey, Beautiful!
+              </AppText>
               <Heart size={24} color={colors.accent} fill={colors.accent} strokeWidth={2} />
             </View>
           </View>
@@ -162,6 +169,7 @@ const styles = StyleSheet.create({
   },
   headerText: { flex: 1 },
   greetingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
+  greetingText: { flexShrink: 1 },
   avatar: {
     width: 50,
     height: 50,

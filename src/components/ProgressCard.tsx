@@ -43,7 +43,7 @@ export function ProgressCard({ completed, total }: Props) {
       <View style={styles.text}>
         <View style={styles.labelRow}>
           <Sparkles size={14} color={colors.accent} strokeWidth={2.2} />
-          <AppText variant="label" color={colors.accent}>
+          <AppText variant="label" color={colors.accentText}>
             Today&apos;s progress
           </AppText>
         </View>

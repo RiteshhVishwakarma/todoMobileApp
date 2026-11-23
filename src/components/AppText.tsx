@@ -10,10 +10,30 @@ type Props = TextProps & {
   secondary?: boolean;
 };
 
+/**
+ * Respects the user's system font size, but caps the scale so large accessibility
+ * settings can't break fixed layouts (badges, tabs, calendar cells).
+ */
+const MAX_FONT_SCALE: Record<Variant, number> = {
+  display: 1.2,
+  title: 1.25,
+  heading: 1.3,
+  body: 1.4,
+  bodyStrong: 1.4,
+  caption: 1.35,
+  label: 1.25,
+};
+
 export function AppText({ variant = 'body', color, secondary, style, ...rest }: Props) {
   const { colors } = useAppTheme();
   const tone = color ?? (secondary ? colors.textSecondary : colors.text);
-  return <Text style={[styles[variant], { color: tone }, style]} {...rest} />;
+  return (
+    <Text
+      maxFontSizeMultiplier={MAX_FONT_SCALE[variant]}
+      style={[styles[variant], { color: tone }, style]}
+      {...rest}
+    />
+  );
 }
 
 const styles = StyleSheet.create({

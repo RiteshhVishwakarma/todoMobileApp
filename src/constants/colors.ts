@@ -6,6 +6,10 @@ export type ThemePalette = {
   text: string;
   textSecondary: string;
   accent: string;
+  /** Accent for text on light surfaces — meets WCAG AA (4.5:1) on cards and the background art. */
+  accentText: string;
+  /** Veil laid over the background image so content stays readable. */
+  backdropVeil: string;
   success: string;
   successSoft: string;
   border: string;
@@ -27,8 +31,10 @@ export const Colors: Record<'light' | 'dark', ThemePalette> = {
     background: '#FFF7FA',
     card: '#FFFFFF',
     text: '#49343D',
-    textSecondary: '#A58C98',
+    textSecondary: '#735765',
     accent: '#E879A5',
+    accentText: '#9E3A6B',
+    backdropVeil: 'rgba(255, 247, 250, 0.30)',
     success: '#A5CFA5',
     successSoft: '#EAF5EA',
     border: '#F7E1EA',
@@ -50,6 +56,9 @@ export const Colors: Record<'light' | 'dark', ThemePalette> = {
     text: '#F8E9F0',
     textSecondary: '#B596A5',
     accent: '#F08DB6',
+    accentText: '#F08DB6',
+    // Dark mode: the light pink art becomes a faint texture under a deep plum veil.
+    backdropVeil: 'rgba(27, 20, 24, 0.86)',
     success: '#93C493',
     successSoft: '#24322A',
     border: '#3A2A33',

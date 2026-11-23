@@ -83,7 +83,7 @@ export function TimePicker({ value, onChange }: Props) {
               style={[styles.ampmItem, active && { backgroundColor: colors.card }]}>
               <AppText
                 variant="caption"
-                color={active ? colors.accent : colors.textSecondary}
+                color={active ? colors.accentText : colors.textSecondary}
                 style={styles.bold}>
                 {label}
               </AppText>
