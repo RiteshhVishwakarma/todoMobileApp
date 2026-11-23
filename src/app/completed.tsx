@@ -7,7 +7,7 @@ import { AppText } from '@/components/AppText';
 import { CustomHeader } from '@/components/CustomHeader';
 import { EmptyState } from '@/components/EmptyState';
 import { Screen } from '@/components/Screen';
-import { TaskCard } from '@/components/TaskCard';
+import { SwipeableTaskCard } from '@/components/SwipeableTaskCard';
 import { Radius, Spacing } from '@/constants/colors';
 import { useAppStore } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
@@ -25,7 +25,7 @@ export default function CompletedScreen() {
       <FlatList
         data={completed}
         keyExtractor={(t) => t.id}
-        renderItem={({ item }) => <TaskCard task={item} showCompletedDate />}
+        renderItem={({ item }) => <SwipeableTaskCard task={item} showCompletedDate />}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}

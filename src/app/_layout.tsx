@@ -3,8 +3,11 @@ import { Stack } from 'expo-router/stack';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo } from 'react';
+import { StyleSheet } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { UndoBar } from '@/components/UndoBar';
 import { useIsReady } from '@/stores/appStore';
 import { AppThemeProvider, useAppTheme } from '@/theme/ThemeContext';
 
@@ -61,16 +64,22 @@ function RootNavigator() {
         <Stack.Screen name="add-task" options={{ presentation: 'modal' }} />
         <Stack.Screen name="add-category" options={{ presentation: 'modal' }} />
       </Stack>
+      <UndoBar />
     </ThemeProvider>
   );
 }
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <AppThemeProvider>
-        <RootNavigator />
-      </AppThemeProvider>
-    </SafeAreaProvider>
+    // Required for swipe gestures (react-native-gesture-handler).
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <AppThemeProvider>
+          <RootNavigator />
+        </AppThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
+
+const styles = StyleSheet.create({ root: { flex: 1 } });

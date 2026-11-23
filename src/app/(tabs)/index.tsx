@@ -10,7 +10,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { ProgressCard } from '@/components/ProgressCard';
 import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
-import { TaskCard } from '@/components/TaskCard';
+import { SwipeableTaskCard } from '@/components/SwipeableTaskCard';
 import { Radius, Spacing } from '@/constants/colors';
 import { useAppStore } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
@@ -98,7 +98,7 @@ export default function HomeScreen() {
             <SectionHeader title="Overdue" count={overdue.length} />
             <View style={styles.list}>
               {overdue.map((task) => (
-                <TaskCard key={task.id} task={task} showDate />
+                <SwipeableTaskCard key={task.id} task={task} showDate />
               ))}
             </View>
           </>
@@ -125,7 +125,7 @@ export default function HomeScreen() {
               <Animated.View
                 key={task.id}
                 entering={FadeInDown.duration(400).delay(Math.min(i, 5) * 60)}>
-                <TaskCard task={task} />
+                <SwipeableTaskCard task={task} />
               </Animated.View>
             ))}
           </View>
@@ -148,7 +148,7 @@ export default function HomeScreen() {
         ) : (
           <View style={styles.list}>
             {upcoming.map((task) => (
-              <TaskCard key={task.id} task={task} showDate />
+              <SwipeableTaskCard key={task.id} task={task} showDate />
             ))}
           </View>
         )}

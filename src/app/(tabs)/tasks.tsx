@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { FilterTabs } from '@/components/FilterTabs';
 import { Screen } from '@/components/Screen';
 import { SearchBar } from '@/components/SearchBar';
-import { TaskCard } from '@/components/TaskCard';
+import { SwipeableTaskCard } from '@/components/SwipeableTaskCard';
 import { Radius, Spacing } from '@/constants/colors';
 import { useAppStore, useCategories } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
@@ -110,7 +110,7 @@ export default function TasksScreen() {
       <FlatList
         data={visible}
         keyExtractor={(t) => t.id}
-        renderItem={({ item }) => <TaskCard task={item} showDate />}
+        renderItem={({ item }) => <SwipeableTaskCard task={item} showDate />}
         contentContainerStyle={styles.list}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         keyboardShouldPersistTaps="handled"

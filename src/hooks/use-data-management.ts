@@ -4,6 +4,7 @@ import { buildBackup, parseBackup, type ParseResult } from '@/storage/backup';
 import { exportBackupFile, pickBackupText } from '@/storage/backupFile';
 import type { PersistedData } from '@/storage/schema';
 import { getDataSnapshot, useAppStore } from '@/stores/appStore';
+import { useUndoStore } from '@/stores/undoStore';
 
 type ValidBackup = Extract<ParseResult, { ok: true }>;
 
@@ -59,6 +60,8 @@ export function useDataManagement() {
   const applyImport = (data: PersistedData, mode: 'merge' | 'replace') => {
     const stats = importData(data, mode);
     if (mode === 'replace') {
+      // Old snapshots don't belong to the restored data.
+      useUndoStore.getState().dismiss();
       notice(
         'success',
         'Backup restored',
@@ -85,6 +88,7 @@ export function useDataManagement() {
     askClear: () => setDialog({ kind: 'confirmClear' }),
     clearAll: async () => {
       await clearAllData();
+      useUndoStore.getState().dismiss();
       notice('success', 'All data cleared', 'Your app is fresh and ready for new plans.');
     },
   };

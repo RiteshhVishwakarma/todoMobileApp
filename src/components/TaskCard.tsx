@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { CalendarDays, Check, CircleCheckBig, Clock, RotateCcw } from 'lucide-react-native';
 import { memo, useState } from 'react';
-import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { Radius, Spacing } from '@/constants/colors';
 import { useAppStore, useCategoryResolver } from '@/stores/appStore';
+import { deleteTaskWithUndo, toggleTaskWithUndo } from '@/stores/undoStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import { softShadow } from '@/theme/styles';
 import type { Task } from '@/types/task';
@@ -48,6 +49,17 @@ function TaskCardBase({ task, showDate, showCompletedDate }: Props) {
       onPress={openDetails}
       accessibilityRole="button"
       accessibilityLabel={`Open task ${task.title}`}
+      // Screen-reader equivalents of the swipe actions.
+      accessibilityActions={[
+        { name: 'activate', label: 'Open task' },
+        { name: 'toggle', label: done ? 'Mark as active' : 'Mark as done' },
+        { name: 'delete', label: 'Delete task' },
+      ]}
+      onAccessibilityAction={(e) => {
+        if (e.nativeEvent.actionName === 'activate') openDetails();
+        else if (e.nativeEvent.actionName === 'toggle') toggleTaskWithUndo(task.id);
+        else if (e.nativeEvent.actionName === 'delete') deleteTaskWithUndo(task.id);
+      }}
       style={({ pressed }) => [
         styles.card,
         { backgroundColor: colors.card, borderColor: colors.border },
@@ -137,7 +149,8 @@ function TaskCardBase({ task, showDate, showCompletedDate }: Props) {
         <Pressable
           onPress={() => toggleCompleted(task.id)}
           hitSlop={8}
-          accessibilityRole="button"
+          // On web the card itself is a <button>; a nested <button> is invalid HTML.
+          accessibilityRole={Platform.OS === 'web' ? undefined : 'button'}
           accessibilityLabel={`Restore "${task.title}"`}
           style={({ pressed }) => [
             styles.restore,

@@ -61,6 +61,11 @@ interface AppState extends PersistedData {
   deleteTask: (id: string) => void;
   setCompleted: (id: string, completed: boolean) => void;
   toggleCompleted: (id: string) => void;
+  /**
+   * Puts a task snapshot back (used by Undo). Replaces the task if it still exists,
+   * otherwise re-inserts it at `index`.
+   */
+  restoreTask: (task: Task, index?: number) => void;
 
   addCategory: (
     input: CategoryInput,
@@ -174,6 +179,23 @@ export const useAppStore = create<AppState>()(
         const task = get().tasks.find((t) => t.id === id);
         if (task) get().setCompleted(id, !task.isCompleted);
       },
+
+      restoreTask: (task, index = 0) =>
+        set((s) => {
+          const existing = s.tasks.findIndex((t) => t.id === task.id);
+          if (existing !== -1) {
+            const copy = s.tasks.slice();
+            copy[existing] = task;
+            return { tasks: copy };
+          }
+          // Its category may have been deleted in the meantime.
+          const safe = knownCategoryIdSet(s.customCategories).has(task.category)
+            ? task
+            : { ...task, category: FALLBACK_CATEGORY_ID };
+          const copy = s.tasks.slice();
+          copy.splice(Math.min(Math.max(index, 0), copy.length), 0, safe);
+          return { tasks: copy };
+        }),
 
       // ----------------------------------------------------------- categories
       addCategory: (input) => {

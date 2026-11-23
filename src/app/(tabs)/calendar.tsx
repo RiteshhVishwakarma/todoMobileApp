@@ -10,7 +10,7 @@ import { EmptyState } from '@/components/EmptyState';
 import { cursorFor, MonthCalendar } from '@/components/MonthCalendar';
 import { Screen } from '@/components/Screen';
 import { SectionHeader } from '@/components/SectionHeader';
-import { TaskCard } from '@/components/TaskCard';
+import { SwipeableTaskCard } from '@/components/SwipeableTaskCard';
 import { Radius, Spacing } from '@/constants/colors';
 import { useAppStore } from '@/stores/appStore';
 import { useAppTheme } from '@/theme/ThemeContext';
@@ -91,7 +91,7 @@ export default function CalendarScreen() {
         ) : (
           <View style={styles.list}>
             {selectedTasks.map((t) => (
-              <TaskCard key={t.id} task={t} />
+              <SwipeableTaskCard key={t.id} task={t} />
             ))}
           </View>
         )}

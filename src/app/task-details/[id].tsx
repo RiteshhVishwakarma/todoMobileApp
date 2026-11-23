@@ -22,6 +22,7 @@ import { PriorityBadge } from '@/components/PriorityBadge';
 import { Screen } from '@/components/Screen';
 import { Radius, Spacing } from '@/constants/colors';
 import { useAppStore, useCategoryResolver, useTask } from '@/stores/appStore';
+import { deleteTaskWithUndo } from '@/stores/undoStore';
 import { useAppTheme } from '@/theme/ThemeContext';
 import { softShadow } from '@/theme/styles';
 import { formatRelativeDate, formatTime, isoToDateKey } from '@/utils/date';
@@ -61,7 +62,6 @@ export default function TaskDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const task = useTask(id);
   const toggleCompleted = useAppStore((s) => s.toggleCompleted);
-  const deleteTask = useAppStore((s) => s.deleteTask);
   const [confirmVisible, setConfirmVisible] = useState(false);
   const [deleted, setDeleted] = useState(false);
   const resolveCategory = useCategoryResolver();
@@ -90,7 +90,8 @@ export default function TaskDetailsScreen() {
     setConfirmVisible(false);
     setDeleted(true);
     goBackOrHome();
-    deleteTask(task.id);
+    // Undo bar appears on the screen we return to.
+    deleteTaskWithUndo(task.id);
   };
 
   return (
